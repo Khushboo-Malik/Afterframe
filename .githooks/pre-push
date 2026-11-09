@@ -1,0 +1,27 @@
+#!/bin/sh
+# AfterFrame push guard: only allow pushes to personal GitHub via the
+# github-personal SSH host alias. Never Bitbucket / work remotes.
+remote_name="$1"
+remote_url="$2"
+allowed_prefix="git@github-personal:khushboo-malik/"
+
+url_lc=$(printf '%s' "$remote_url" | tr '[:upper:]' '[:lower:]')
+
+case "$url_lc" in
+  *bitbucket*)
+    echo "pre-push: REFUSED. '$remote_name' ($remote_url) is a Bitbucket URL." >&2
+    echo "pre-push: AfterFrame must only push to personal GitHub." >&2
+    exit 1
+    ;;
+esac
+
+case "$url_lc" in
+  "$allowed_prefix"*)
+    exit 0
+    ;;
+  *)
+    echo "pre-push: REFUSED. '$remote_name' ($remote_url) is not personal GitHub." >&2
+    echo "pre-push: allowed remotes start with git@github-personal:Khushboo-Malik/" >&2
+    exit 1
+    ;;
+esac

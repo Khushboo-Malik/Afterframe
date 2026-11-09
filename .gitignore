@@ -1,0 +1,22 @@
+# --- Secrets: never commit ---
+.env
+.env.*
+!.env.example
+
+# --- Python / uv ---
+__pycache__/
+*.py[cod]
+.venv/
+backend/staticfiles/
+
+# --- Node / Next.js ---
+node_modules/
+.next/
+out/
+
+# --- OS / editors / local tooling ---
+.DS_Store
+.idea/
+.vscode/
+*.log
+.superpowers/
