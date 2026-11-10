@@ -3,10 +3,13 @@
     uv run python manage.py try_ai extract <youtube-url> [--model X] [--usd-in 0.30 --usd-out 2.50]
     uv run python manage.py try_ai resolve "<place name>" [--city X] [--country Y]
         [--category food] [--description "..."] [--title "..."] [--model X]
+    uv run python manage.py try_ai pipeline <youtube-url> [--max-searches N] [--model X]
+        [--usd-in 0.30 --usd-out 2.50]
 """
 
 from __future__ import annotations
 
+import threading
 import time
 from functools import partial
 
@@ -19,6 +22,7 @@ from core.agent.extract import (
     extract_candidates,
     format_timestamp,
 )
+from core.agent.pipeline import Job, PipelineDeps, run_pipeline
 from core.agent.resolve_graph import (
     AgentBudget,
     PlaceResult,
@@ -32,35 +36,82 @@ from core.places import search_places
 from core.video_url import ParseError, parse_video_url
 from core.youtube import MetaError, YouTubeError, get_youtube_meta
 
+CATEGORIES = ["food", "stay", "attraction", "activity", "shopping", "other"]
+
 
 class Command(BaseCommand):
     help = "Try the AI pipeline by hand (no database writes)."
 
     def add_arguments(self, parser):
         sub = parser.add_subparsers(dest="subcommand", required=True)
+
         extract = sub.add_parser("extract", help="Stream candidate places from a YouTube video")
         extract.add_argument("url")
-        extract.add_argument("--model", help="Override GEMINI_MODEL for this run")
-        extract.add_argument("--usd-in", type=float, help="USD per 1M input tokens (cost line)")
-        extract.add_argument("--usd-out", type=float, help="USD per 1M output tokens (cost line)")
-        extract.add_argument("--inr-per-usd", type=float, default=88.0)
+        self._model_and_cost_args(extract)
 
         resolve = sub.add_parser("resolve", help="Check one place against Google Maps, step by step")
         resolve.add_argument("name", help="The place's name as said in the video")
         resolve.add_argument("--city")
         resolve.add_argument("--country")
-        resolve.add_argument(
-            "--category",
-            default="other",
-            choices=["food", "stay", "attraction", "activity", "shopping", "other"],
-        )
+        resolve.add_argument("--category", default="other", choices=CATEGORIES)
         resolve.add_argument("--description", default="", help="What the video says about it")
         resolve.add_argument("--title", default="", help="The video's title")
         resolve.add_argument("--model", help="Override GEMINI_MODEL for this run")
 
+        pipeline = sub.add_parser("pipeline", help="Watch a video and check every place, in memory")
+        pipeline.add_argument("url")
+        pipeline.add_argument(
+            "--max-searches",
+            type=int,
+            default=MAX_SEARCHES_PER_VIDEO,
+            help=f"Places searches for this video (default {MAX_SEARCHES_PER_VIDEO}); "
+            "use 3 to see a partial run",
+        )
+        self._model_and_cost_args(pipeline)
+
+    @staticmethod
+    def _model_and_cost_args(parser):
+        parser.add_argument("--model", help="Override GEMINI_MODEL for this run")
+        parser.add_argument("--usd-in", type=float, help="USD per 1M input tokens (cost line)")
+        parser.add_argument("--usd-out", type=float, help="USD per 1M output tokens (cost line)")
+        parser.add_argument("--inr-per-usd", type=float, default=88.0)
+
     def handle(self, *args, **opts):
-        handler = {"extract": self._extract, "resolve": self._resolve}[opts["subcommand"]]
+        handler = {
+            "extract": self._extract,
+            "resolve": self._resolve,
+            "pipeline": self._pipeline,
+        }[opts["subcommand"]]
         handler(opts)
+
+    # --- shared helpers ---
+    def _load_video(self, opts):
+        """Parse the link and fetch YouTube metadata, or stop with the rejection code."""
+        parsed = parse_video_url(opts["url"])
+        if isinstance(parsed, ParseError):
+            raise CommandError(f"URL rejected: {parsed.code}")
+        try:
+            meta = get_youtube_meta(parsed.video_id)
+            model = opts["model"] or llm.gemini_model()
+        except (YouTubeError, MissingEnvError) as exc:
+            raise CommandError(str(exc)) from exc
+        if isinstance(meta, MetaError):
+            raise CommandError(f"Video rejected: {meta.code}")
+        self.stdout.write(
+            f"{meta.title!r} by {meta.channel}, {format_timestamp(meta.duration_sec)} · {model}\n"
+        )
+        return parsed, meta
+
+    @staticmethod
+    def _stream_fn(opts):
+        if opts["model"]:
+            return partial(llm.stream_video_json, model=opts["model"])
+        return llm.stream_video_json
+
+    def _cost_line(self, opts, usage: llm.Usage):
+        if opts["usd_in"] is not None and opts["usd_out"] is not None:
+            usd = (usage.input_tokens * opts["usd_in"] + usage.output_tokens * opts["usd_out"]) / 1e6
+            self.stdout.write(f"≈ ${usd:.4f} (₹{usd * opts['inr_per_usd']:.2f})")
 
     def _result_line(self, r: PlaceResult) -> str:
         style = {
@@ -74,6 +125,41 @@ class Command(BaseCommand):
         flags = [f for f in ("places_error", "budget_exhausted") if getattr(r, f)]
         return line + (f"  [{', '.join(flags)}]" if flags else "")
 
+    # --- extract ---
+    def _extract(self, opts):
+        out = self.stdout.write
+        parsed, meta = self._load_video(opts)
+        usage = llm.Usage()
+        start = time.monotonic()
+        found = 0
+        try:
+            for c in extract_candidates(
+                parsed.canonical_url,
+                meta.title,
+                meta.description,
+                meta.duration_sec,
+                stream_fn=self._stream_fn(opts),
+                usage=usage,
+            ):
+                found += 1
+                where = ", ".join(p for p in (c.city, c.country) if p)
+                out(
+                    f"[{time.monotonic() - start:5.1f}s] #{c.ord:<2} "
+                    f"{format_timestamp(c.timestamp_sec):>7}  {c.category:<10} "
+                    + self.style.SUCCESS(c.name)
+                    + (f"  ({where})" if where else "")
+                )
+                out(f"{'':12}{c.description}")
+                out(f"{'':12}https://youtu.be/{parsed.video_id}?t={c.timestamp_sec}")
+        except ExtractionPartialError as exc:
+            out(self.style.WARNING(f"\nStopped early: {exc} ({exc.__cause__})"))
+        except ExtractionError as exc:
+            raise CommandError(str(exc)) from exc
+
+        out(f"\n{found} place(s) in {time.monotonic() - start:.1f}s · {usage}")
+        self._cost_line(opts, usage)
+
+    # --- resolve ---
     def _resolve(self, opts):
         out = self.stdout.write
         c = Candidate(
@@ -110,52 +196,60 @@ class Command(BaseCommand):
             f"Gemini {usage} · {time.monotonic() - start:.1f}s"
         )
 
-    def _extract(self, opts):
+    # --- pipeline ---
+    def _pipeline(self, opts):
         out = self.stdout.write
-        parsed = parse_video_url(opts["url"])
-        if isinstance(parsed, ParseError):
-            raise CommandError(f"URL rejected: {parsed.code}")
+        parsed, meta = self._load_video(opts)
         try:
-            meta = get_youtube_meta(parsed.video_id)
-            model = opts["model"] or llm.gemini_model()
-        except (YouTubeError, MissingEnvError) as exc:
+            agent_model = make_resolver_model(opts["model"])
+        except MissingEnvError as exc:
             raise CommandError(str(exc)) from exc
-        if isinstance(meta, MetaError):
-            raise CommandError(f"Video rejected: {meta.code}")
 
-        out(f"{meta.title!r} by {meta.channel}, {format_timestamp(meta.duration_sec)} · {model}\n")
-
-        usage = llm.Usage()
-        stream_fn = partial(llm.stream_video_json, model=opts["model"]) if opts["model"] else (
-            llm.stream_video_json
-        )
         start = time.monotonic()
-        found = 0
+        elapsed = lambda: f"[{time.monotonic() - start:5.1f}s]"  # noqa: E731
+
+        # Count resolves running at once, to see the thread pool at work.
+        lock, inflight, peak = threading.Lock(), [0], [0]
+
+        def resolve(c, **kw):
+            with lock:
+                inflight[0] += 1
+                peak[0] = max(peak[0], inflight[0])
+            try:
+                return resolve_candidate(c, search=search_places, agent_model=agent_model, **kw)
+            finally:
+                with lock:
+                    inflight[0] -= 1
+
+        def save_place(r: PlaceResult):
+            c = r.candidate
+            out(
+                f"{elapsed()} #{c.ord:<2} {format_timestamp(c.timestamp_sec):>7}  "
+                f"{c.category:<10} {c.name}"
+            )
+            out(f"{'':9}{self._result_line(r)}")
+
+        budget = SearchBudget(opts["max_searches"])
+        deps = PipelineDeps(
+            extract=partial(extract_candidates, stream_fn=self._stream_fn(opts)),
+            resolve=resolve,
+            set_stage=lambda stage: out(self.style.MIGRATE_HEADING(f"{elapsed()} stage → {stage}")),
+            save_place=save_place,
+            usage=llm.Usage(),
+            budget=budget,
+            agent_budget=AgentBudget(),
+        )
+        job = Job(parsed.canonical_url, meta.title, meta.description, meta.duration_sec)
         try:
-            for c in extract_candidates(
-                parsed.canonical_url,
-                meta.title,
-                meta.description,
-                meta.duration_sec,
-                stream_fn=stream_fn,
-                usage=usage,
-            ):
-                found += 1
-                where = ", ".join(p for p in (c.city, c.country) if p)
-                out(
-                    f"[{time.monotonic() - start:5.1f}s] #{c.ord:<2} "
-                    f"{format_timestamp(c.timestamp_sec):>7}  {c.category:<10} "
-                    + self.style.SUCCESS(c.name)
-                    + (f"  ({where})" if where else "")
-                )
-                out(f"{'':12}{c.description}")
-                out(f"{'':12}https://youtu.be/{parsed.video_id}?t={c.timestamp_sec}")
-        except ExtractionPartialError as exc:
-            out(self.style.WARNING(f"\nStopped early: {exc} ({exc.__cause__})"))
+            result = run_pipeline(job, deps)
         except ExtractionError as exc:
             raise CommandError(str(exc)) from exc
 
-        out(f"\n{found} place(s) in {time.monotonic() - start:.1f}s · {usage}")
-        if opts["usd_in"] is not None and opts["usd_out"] is not None:
-            usd = (usage.input_tokens * opts["usd_in"] + usage.output_tokens * opts["usd_out"]) / 1e6
-            out(f"≈ ${usd:.4f} (₹{usd * opts['inr_per_usd']:.2f})")
+        out(f"\n{result}")
+        out(
+            f"Gemini {deps.usage} · places_calls {opts['max_searches'] - budget.remaining}"
+            f"/{opts['max_searches']} · agent slots used "
+            f"{AgentBudget().remaining - deps.agent_budget.remaining} · "
+            f"max resolves in flight {peak[0]} · {time.monotonic() - start:.1f}s"
+        )
+        self._cost_line(opts, deps.usage)
