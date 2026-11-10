@@ -99,11 +99,13 @@ def stream_video_json(
     usage: Usage,
     *,
     resolution: str | None = None,
+    model: str | None = None,
 ) -> Iterator[str]:
     """Yield raw JSON text chunks as Gemini watches the video.
 
     `schema` is a Pydantic model or e.g. `list[Model]`; Gemini is constrained to it.
     `resolution` overrides GEMINI_MEDIA_RESOLUTION (low | medium | high).
+    `model` overrides GEMINI_MODEL (used to compare models side by side).
     """
     config = types.GenerateContentConfig(
         response_mime_type="application/json",
@@ -117,12 +119,19 @@ def stream_video_json(
             types.Part(text=prompt),
         ],
     )
-    first, stream = _open_stream(
-        make_client(), model=gemini_model(), contents=contents, config=config
+    yield from _stream_chunks(
+        model=model or gemini_model(), contents=contents, config=config, usage=usage
     )
 
+
+def _stream_chunks(*, model: str, contents: Any, config: Any, usage: Usage) -> Iterator[str]:
+    # The client must stay referenced for the whole stream: genai.Client.__del__
+    # closes its HTTP connection, so a client garbage-collected after the first
+    # chunk kills the stream ("ReadError: Bad file descriptor").
+    client = make_client()
     last_meta = None
     try:
+        first, stream = _open_stream(client, model=model, contents=contents, config=config)
         for chunk in chain([first] if first is not None else [], stream):
             if chunk.usage_metadata:
                 last_meta = chunk.usage_metadata
@@ -137,3 +146,4 @@ def stream_video_json(
                 # Thinking tokens are billed as output.
                 (last_meta.candidates_token_count or 0) + (last_meta.thoughts_token_count or 0),
             )
+        client.close()

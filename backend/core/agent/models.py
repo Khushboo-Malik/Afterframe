@@ -11,9 +11,10 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from core.config import require_env
 
 
-def make_agent_model() -> ChatGoogleGenerativeAI:
+def make_agent_model(model: str | None = None) -> ChatGoogleGenerativeAI:
+    """`model` overrides GEMINI_MODEL (used to compare models side by side)."""
     return ChatGoogleGenerativeAI(
-        model=require_env("GEMINI_MODEL"),
+        model=model or require_env("GEMINI_MODEL"),
         google_api_key=require_env("GEMINI_API_KEY"),
         vertexai=False,
         max_retries=4,

@@ -1,7 +1,7 @@
 """Real-API smoke check: Gemini watches a YouTube video and streams JSON.
 
     uv run python manage.py smoke_gemini <youtube-url> [--resolutions low,high]
-        [--usd-in 0.30 --usd-out 2.50 --inr-per-usd 88] [--skip-agent]
+        [--model gemini-3.5-flash-lite] [--usd-in 0.30 --usd-out 2.50 --inr-per-usd 88] [--skip-agent]
 
 1. Prints the last 4 chars of the Gemini key and vertexai=False, so you can
    confirm it's your personal AfterFrame key.
@@ -18,6 +18,7 @@ import os
 import time
 
 from django.core.management.base import BaseCommand, CommandError
+from google.genai import errors as genai_errors
 from langchain_core.tools import tool
 from pydantic import BaseModel
 
@@ -52,6 +53,7 @@ class Command(BaseCommand):
         parser.add_argument("url", help="A public YouTube video URL")
         parser.add_argument("--resolutions", default="low,high")
         parser.add_argument("--skip-agent", action="store_true")
+        parser.add_argument("--model", help="Override GEMINI_MODEL for this run, e.g. gemini-3.5-flash-lite")
         parser.add_argument("--usd-in", type=float, help="Paid price, USD per 1M input tokens")
         parser.add_argument("--usd-out", type=float, help="Paid price, USD per 1M output tokens")
         parser.add_argument("--inr-per-usd", type=float, default=88.0)
@@ -60,7 +62,7 @@ class Command(BaseCommand):
         out = self.stdout.write
         try:
             client = llm.make_client()
-            model = llm.gemini_model()
+            model = opts["model"] or llm.gemini_model()
         except MissingEnvError as exc:
             raise CommandError(str(exc)) from exc
 
@@ -85,23 +87,26 @@ class Command(BaseCommand):
             out(f"{meta.title!r} by {meta.channel}, {duration // 60}:{duration % 60:02d}\n")
 
         results: dict[str, llm.Usage] = {}
-        for res in [r.strip() for r in opts["resolutions"].split(",") if r.strip()]:
-            results[res] = self._stream_once(parsed.canonical_url, res, duration, opts)
+        try:
+            for res in [r.strip() for r in opts["resolutions"].split(",") if r.strip()]:
+                results[res] = self._stream_once(parsed.canonical_url, res, duration, opts, model)
+        except genai_errors.APIError as exc:
+            raise CommandError(f"Gemini API error {exc.code} {exc.status}: {exc.message}") from exc
 
         if "low" in results and "high" in results and results["high"].input_tokens:
             ratio = results["low"].input_tokens / results["high"].input_tokens
             out(f"\nlow/high input tokens = {ratio:.2f} (docs suggest about 0.33)")
 
         if not opts["skip_agent"]:
-            self._agent_check()
+            self._agent_check(model)
 
-    def _stream_once(self, url, res, duration, opts) -> llm.Usage:
+    def _stream_once(self, url, res, duration, opts, model) -> llm.Usage:
         out = self.stdout.write
         out(self.style.MIGRATE_HEADING(f"--- resolution={res} ---"))
         usage = llm.Usage()
         start = time.monotonic()
         chunks: list[str] = []
-        for chunk in llm.stream_video_json(url, PROMPT, list[Thing], usage, resolution=res):
+        for chunk in llm.stream_video_json(url, PROMPT, list[Thing], usage, resolution=res, model=model):
             chunks.append(chunk)
             out(f"[{time.monotonic() - start:5.1f}s] chunk {len(chunks)}: {chunk!r}")
         elapsed = time.monotonic() - start
@@ -123,11 +128,11 @@ class Command(BaseCommand):
                 out(f"≈ ₹{usd * opts['inr_per_usd']:.2f} per 20-min video at paid rates")
         return usage
 
-    def _agent_check(self):
+    def _agent_check(self, model):
         out = self.stdout.write
         out(self.style.MIGRATE_HEADING("\n--- agent model: echo tool, tool_choice='any' ---"))
-        chat = make_agent_model()
-        out(f"vertexai={chat.vertexai}, max_retries={chat.max_retries}")
+        chat = make_agent_model(model)
+        out(f"model={chat.model}, vertexai={chat.vertexai}, max_retries={chat.max_retries}")
         msg = chat.bind_tools([echo], tool_choice="any").invoke(
             "Use the echo tool to send back the word 'hello'."
         )
