@@ -18,6 +18,12 @@ from core.config import CELERY_CONCURRENCY, env_bool, env_int
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env", override=True)
 
+# LangSmith falls back to the legacy LANGCHAIN_* names (LANGCHAIN_TRACING_V2,
+# LANGCHAIN_API_KEY...) when a LANGSMITH_* one is blank, so a work shell could
+# send AfterFrame traces to a work account. Only backend/.env's LANGSMITH_* count.
+for _name in [n for n in os.environ if n.startswith("LANGCHAIN_")]:
+    del os.environ[_name]
+
 
 def env_list(name: str, default: str = "") -> list[str]:
     return [v.strip() for v in os.getenv(name, default).split(",") if v.strip()]

@@ -1,8 +1,8 @@
 """Hands-on AI checks. Never writes to the database.
 
     uv run python manage.py try_ai extract <youtube-url> [--model X] [--usd-in 0.30 --usd-out 2.50]
-
-`resolve` and `pipeline` arrive with sub-plan 04.
+    uv run python manage.py try_ai resolve "<place name>" [--city X] [--country Y]
+        [--category food] [--description "..."] [--title "..."] [--model X]
 """
 
 from __future__ import annotations
@@ -19,7 +19,16 @@ from core.agent.extract import (
     extract_candidates,
     format_timestamp,
 )
-from core.config import MissingEnvError
+from core.agent.resolve_graph import (
+    AgentBudget,
+    PlaceResult,
+    SearchBudget,
+    make_resolver_model,
+    resolve_candidate,
+)
+from core.agent.schemas import Candidate
+from core.config import MAX_SEARCHES_PER_VIDEO, MissingEnvError
+from core.places import search_places
 from core.video_url import ParseError, parse_video_url
 from core.youtube import MetaError, YouTubeError, get_youtube_meta
 
@@ -36,9 +45,70 @@ class Command(BaseCommand):
         extract.add_argument("--usd-out", type=float, help="USD per 1M output tokens (cost line)")
         extract.add_argument("--inr-per-usd", type=float, default=88.0)
 
+        resolve = sub.add_parser("resolve", help="Check one place against Google Maps, step by step")
+        resolve.add_argument("name", help="The place's name as said in the video")
+        resolve.add_argument("--city")
+        resolve.add_argument("--country")
+        resolve.add_argument(
+            "--category",
+            default="other",
+            choices=["food", "stay", "attraction", "activity", "shopping", "other"],
+        )
+        resolve.add_argument("--description", default="", help="What the video says about it")
+        resolve.add_argument("--title", default="", help="The video's title")
+        resolve.add_argument("--model", help="Override GEMINI_MODEL for this run")
+
     def handle(self, *args, **opts):
-        if opts["subcommand"] == "extract":
-            self._extract(opts)
+        handler = {"extract": self._extract, "resolve": self._resolve}[opts["subcommand"]]
+        handler(opts)
+
+    def _result_line(self, r: PlaceResult) -> str:
+        style = {
+            "verified": self.style.SUCCESS,
+            "needs_review": self.style.WARNING,
+            "unmatched": self.style.ERROR,
+        }[r.verification]
+        line = style(f"{r.verification:<12}") + f" via {r.resolved_by:<6} score {r.match_score:.3f}"
+        if r.hit:
+            line += f"  → {r.hit.name} · {r.hit.address}"
+        flags = [f for f in ("places_error", "budget_exhausted") if getattr(r, f)]
+        return line + (f"  [{', '.join(flags)}]" if flags else "")
+
+    def _resolve(self, opts):
+        out = self.stdout.write
+        c = Candidate(
+            ord=0,
+            name=opts["name"],
+            category=opts["category"],
+            city=opts["city"],
+            country=opts["country"],
+            timestamp_sec=0,
+            description=opts["description"],
+        )
+        try:
+            model = make_resolver_model(opts["model"])
+        except MissingEnvError as exc:
+            raise CommandError(str(exc)) from exc
+
+        budget, usage = SearchBudget(MAX_SEARCHES_PER_VIDEO), llm.Usage()
+        start = time.monotonic()
+        r = resolve_candidate(
+            c,
+            title=opts["title"],
+            search=search_places,
+            agent_model=model,
+            budget=budget,
+            agent_budget=AgentBudget(),
+            usage=usage,
+            log=lambda line: out(f"[{time.monotonic() - start:5.1f}s] {line}"),
+        )
+        out("\n" + self._result_line(r))
+        if r.hit:
+            out(f"{'':12}https://www.google.com/maps/place/?q=place_id:{r.hit.place_id}")
+        out(
+            f"\nPlaces searches: {MAX_SEARCHES_PER_VIDEO - budget.remaining} · "
+            f"Gemini {usage} · {time.monotonic() - start:.1f}s"
+        )
 
     def _extract(self, opts):
         out = self.stdout.write
