@@ -43,7 +43,8 @@ class ParseError:
 
 
 def parse_video_url(text: str) -> ParsedVideo | ParseError:
-    s = (text or "").strip()
+    # Pasted links often arrive wrapped: <https://...> (Slack/Markdown) or in quotes.
+    s = (text or "").strip().strip("<>\"'").strip()
     low = s.lower()
 
     if _INSTAGRAM_RE.search(low):
