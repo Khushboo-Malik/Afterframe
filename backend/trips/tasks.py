@@ -7,6 +7,8 @@ import time
 from functools import partial
 
 from celery import shared_task
+from django.db import connection
+from django.utils import timezone
 
 from core.agent.extract import extract_candidates
 from core.agent.pipeline import Job, PipelineDeps, StaleRunError, run_pipeline
@@ -17,6 +19,7 @@ from core.places import search_places
 
 from . import repo
 from .models import Video
+from .refresh import refresh_stale_places
 
 log = logging.getLogger(__name__)
 
@@ -61,3 +64,20 @@ def map_video_task(key: str, run_id: str) -> None:
         )
     except StaleRunError:
         log.info("map_video %s: run %s superseded before finishing", key, run_id)
+
+
+# --- Daily jobs (Celery Beat schedule in config/celery.py) ---
+@shared_task(ignore_result=True)
+def refresh_places_task() -> int:
+    n = refresh_stale_places(now=timezone.now())
+    log.info("refresh_places: %d places refreshed", n)
+    return n
+
+
+@shared_task(ignore_result=True)
+def db_keepalive_task() -> None:
+    """A tiny daily query, so the free Supabase project never pauses for inactivity."""
+    with connection.cursor() as cur:
+        cur.execute("SELECT 1")
+        cur.fetchone()
+    log.info("db_keepalive: ok")

@@ -20,3 +20,6 @@ out/
 .vscode/
 *.log
 .superpowers/
+
+# --- Celery Beat local schedule state ---
+celerybeat-schedule*
