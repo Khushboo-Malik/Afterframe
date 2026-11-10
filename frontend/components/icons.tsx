@@ -1,0 +1,38 @@
+// One drawn icon family (16px grid, 1.7 stroke) standing in for the ▶ ✓ ⚠ ↗ 📍 💡 glyphs.
+// All decorative: the text next to each icon carries the meaning.
+type P = { className?: string };
+const cls = (c?: string) => (c ? `ic ${c}` : "ic");
+
+export const PlayIcon = ({ className }: P) => (
+  <svg className={cls(className)} viewBox="0 0 16 16" aria-hidden="true"><path d="M4.6 2.9v10.2L13 8z" fill="currentColor" /></svg>
+);
+export const CheckIcon = ({ className }: P) => (
+  <svg className={cls(className)} viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.6l3.2 3.1L13 4.8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+);
+export const WarnIcon = ({ className }: P) => (
+  <svg className={cls(className)} viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.3l6.4 11.2H1.6z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M8 6.5v3.2M8 11.7v.01" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
+);
+export const ExtIcon = ({ className }: P) => (
+  <svg className={cls(className)} viewBox="0 0 16 16" aria-hidden="true"><path d="M5.2 10.8L11 5M6 4.6h5.4V10" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+);
+export const PinIcon = ({ className }: P) => (
+  <svg className={cls(className)} viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14.6s-4.7-4.3-4.7-7.8a4.7 4.7 0 0 1 9.4 0c0 3.5-4.7 7.8-4.7 7.8z" fill="currentColor" /><circle cx="8" cy="6.8" r="1.7" fill="var(--af-surface)" /></svg>
+);
+export const BulbIcon = ({ className }: P) => (
+  <svg className={cls(className)} viewBox="0 0 16 16" aria-hidden="true"><path d="M6.3 13.9h3.4M8 1.9a4.3 4.3 0 0 0-2.6 7.7c.5.4.8.9.8 1.5v.6h3.6v-.6c0-.6.3-1.1.8-1.5A4.3 4.3 0 0 0 8 1.9z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+);
+export const SpinIcon = ({ className }: P) => (
+  <svg className={cls(`spin ${className ?? ""}`.trim())} viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2a6 6 0 1 0 6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+);
+export const SearchIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+);
+export const LogoMark = () => (
+  <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="1.5" y="3.5" width="23" height="19" rx="4" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M13 18.5s-4.5-4.2-4.5-7.3a4.5 4.5 0 0 1 9 0c0 3.1-4.5 7.3-4.5 7.3z" fill="var(--af-accent)" /><circle cx="13" cy="11.2" r="1.6" fill="var(--af-surface)" /></svg>
+);
+export const BigPinIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M12 21s-6-5.6-6-10a6 6 0 0 1 12 0c0 4.4-6 10-6 10z" /><circle cx="12" cy="11" r="2" /></svg>
+);
+export const BadIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7.5v5.5M12 16.5v.01" /></svg>
+);
