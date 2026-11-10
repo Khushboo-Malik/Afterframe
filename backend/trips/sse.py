@@ -99,6 +99,8 @@ async def video_events(request, key: str):
     response = StreamingHttpResponse(
         _stream(key, _last_event_id(request)), content_type="text/event-stream"
     )
-    response["Cache-Control"] = "no-cache"
+    # no-transform stops proxies from gzipping the stream: Next.js's compression
+    # (and others) would otherwise hold every event until the stream ends.
+    response["Cache-Control"] = "no-cache, no-transform"
     response["X-Accel-Buffering"] = "no"  # tells Nginx not to buffer the stream
     return response
