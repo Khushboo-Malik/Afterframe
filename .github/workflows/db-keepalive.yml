@@ -1,0 +1,28 @@
+# BACKUP keep-alive for the free Supabase project (free projects pause after
+# 7 days without activity and don't wake up on their own).
+# The primary is the Celery Beat job db_keepalive_task on the EC2 server.
+# This is only the backup because GitHub disables scheduled workflows after
+# 60 days without repo activity.
+#
+# Needs the repo variable SITE_URL (Settings → Secrets and variables → Actions
+# → Variables), e.g. https://afterframe.vercel.app. Not a secret.
+name: DB keep-alive
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # 06:00 UTC daily
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: GET /api/healthz/db (runs SELECT 1 on Supabase)
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          test -n "$SITE_URL" || { echo "Set the SITE_URL repo variable"; exit 1; }
+          curl -fsS --retry 3 --retry-delay 20 --max-time 30 "$SITE_URL/api/healthz/db"

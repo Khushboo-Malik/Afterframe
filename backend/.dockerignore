@@ -1,0 +1,10 @@
+# Keep secrets and local junk out of the image.
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.py[cod]
+staticfiles/
+celerybeat-schedule*
+.DS_Store

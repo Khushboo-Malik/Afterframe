@@ -55,7 +55,9 @@ def api_error(code: str) -> ApiError:
     return ApiError(code, message, http)
 
 
-def submit_video(url: str) -> SubmitOk | ApiError:
+def submit_video(url: str, *, skip_limit: bool = False) -> SubmitOk | ApiError:
+    """skip_limit=True is only for the owner's `seed_examples` command: the
+    site-wide daily limit is neither checked nor counted."""
     # 1. parse
     if not isinstance(url, str) or len(url) > MAX_URL_CHARS:
         return api_error("invalid_url")
@@ -80,9 +82,10 @@ def submit_video(url: str) -> SubmitOk | ApiError:
         # failed, stale processing, or an old partial: fall through and map it again
 
     # 3. the site-wide daily limit
-    limit = rate_limit.check()
-    if isinstance(limit, rate_limit.Limited):
-        return api_error("busy" if limit.reason == "unavailable" else "rate_limited")
+    if not skip_limit:
+        limit = rate_limit.check()
+        if isinstance(limit, rate_limit.Limited):
+            return api_error("busy" if limit.reason == "unavailable" else "rate_limited")
 
     # 4. YouTube: does it exist, is it public, is it short enough?
     try:
@@ -100,7 +103,8 @@ def submit_video(url: str) -> SubmitOk | ApiError:
     if outcome == "done":
         return SubmitOk(key, "done", 200)
 
-    rate_limit.record()
+    if not skip_limit:
+        rate_limit.record()
     from .tasks import map_video_task  # imported here: tasks pulls in the whole AI stack
 
     try:
