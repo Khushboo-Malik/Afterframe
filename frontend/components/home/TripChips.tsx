@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-import { ArrowRightIcon, ChevronIcon } from "@/components/icons";
+import { ChevronIcon } from "@/components/icons";
 import type { VideoOut } from "@/lib/api";
 
 /** "Uttarakhand Tour | Uttarakhand Tourist Places | …" → "Uttarakhand Tour". */
@@ -48,9 +48,6 @@ export default function TripChips({ trips }: { trips: VideoOut[] }) {
             <span>{shortTitle(v.title)}</span>
           </Link>
         ))}
-        <a className="tchip all" href="#trips">
-          See all <ArrowRightIcon className="down" />
-        </a>
       </div>
       <button type="button" className={`tchips-arrow next${edges.end ? " off" : ""}`} aria-label="Scroll trips right" disabled={edges.end} onClick={() => scroll(1)}>
         <ChevronIcon />

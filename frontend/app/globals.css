@@ -184,8 +184,6 @@ body:has(main.home) .s-head .s-flex { display: block; }
 .tchip img { width: 26px; height: 26px; flex: none; border-radius: 50%; object-fit: cover; }
 .tchip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tchip:hover { border-color: var(--af-accent); color: var(--af-accent); }
-.tchip.all { padding-left: 13px; color: var(--af-accent); gap: 5px; }
-.tchip .down { transform: rotate(90deg); }
 .tchips-arrow { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--af-line); background: var(--af-surface); color: var(--af-ink); cursor: pointer; transition: border-color .15s, color .15s; }
 .tchips-arrow:hover { border-color: var(--af-accent); color: var(--af-accent); }
 .tchips-arrow.prev .ic { transform: rotate(180deg); }
