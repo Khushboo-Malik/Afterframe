@@ -3,11 +3,11 @@
 import { AdvancedMarker, Map, useMap } from "@vis.gl/react-google-maps";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
-import { FitIcon, MinusIcon, PlusIcon } from "@/components/icons";
+import { FitIcon, MinusIcon, PlusIcon, StartIcon } from "@/components/icons";
 import { useSiteTheme } from "@/lib/theme";
 import { CATEGORY_COLORS, type NumberedPlace } from "@/lib/trip-state";
 
-const PANEL_W = 356; // desktop stop panel width + gap (see .sp in globals.css)
+const PANEL_W = 466; // desktop stop panel width + gap (see .sp in globals.css)
 const CARD_W = 372; // desktop trip card width + gap (see .tc)
 const PHONE = 720;
 const STOP_ZOOM = 15;
@@ -206,7 +206,7 @@ function Pins({ places, selectedId, onSelect }: { places: NumberedPlace[]; selec
   );
 }
 
-function Controls({ onFit }: { onFit: () => void }) {
+function Controls({ onFit, onStart }: { onFit: () => void; onStart?: () => void }) {
   const map = useMap();
   const zoom = (d: number) => map && map.setZoom((map.getZoom() ?? 12) + d);
   return (
@@ -220,6 +220,11 @@ function Controls({ onFit }: { onFit: () => void }) {
       <button type="button" className="mc-fit" aria-label="Show all pins" onClick={onFit}>
         <FitIcon /> <span className="mc-fit-l">Show all</span>
       </button>
+      {onStart && (
+        <button type="button" className="mc-fit mc-start" aria-label="Start from the beginning" onClick={onStart}>
+          <StartIcon /> <span className="mc-fit-l">Start from the beginning</span>
+        </button>
+      )}
     </div>
   );
 }
@@ -262,7 +267,7 @@ export default function TripMap({ places, selectedId, panelOpen, live, onSelect,
           <Camera places={places} selected={selected} panelOpen={panelOpen} live={live} fitSeq={fitSeq} />
         </Map>
       )}
-      {theme && <Controls onFit={() => setFitSeq((n) => n + 1)} />}
+      {theme && <Controls onFit={() => setFitSeq((n) => n + 1)} onStart={first ? () => onSelect(first.id) : undefined} />}
     </div>
   );
 }

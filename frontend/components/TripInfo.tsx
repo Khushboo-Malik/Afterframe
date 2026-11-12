@@ -2,7 +2,7 @@
 
 import { useId, useState, type CSSProperties } from "react";
 
-import { ChevronIcon, PinIcon, PlayIcon, WarnIcon } from "@/components/icons";
+import { ChevronIcon, PlaneIcon, PlayIcon, WarnIcon } from "@/components/icons";
 import { youtubeAt, youtubeUrl, type Category, type PlaceOut, type VideoOut } from "@/lib/api";
 import { formatTimestamp } from "@/lib/format";
 import { CATEGORY_COLORS, CATEGORY_LABELS } from "@/lib/trip-state";
@@ -16,11 +16,11 @@ type Props = {
   active: Category | "all";
   onFilter: (c: Category | "all") => void;
   unmatched: PlaceOut[]; // mentioned in the video but not found on the map
-  showHint: boolean; // "click any pin" until the first stop is opened
+  ready: boolean; // mapping finished with places on the map: time to cheer
 };
 
 /** Floats over the map's top-left corner: what this trip is, the filters, and the places with no pin. */
-export default function TripInfo({ video, meta, live, partial, categories, active, onFilter, unmatched, showHint }: Props) {
+export default function TripInfo({ video, meta, live, partial, categories, active, onFilter, unmatched, ready }: Props) {
   const [open, setOpen] = useState(false);
   const listId = useId();
 
@@ -43,10 +43,12 @@ export default function TripInfo({ video, meta, live, partial, categories, activ
         </div>
       </div>
 
-      {showHint && (
-        <p className="tc-hint">
-          <PinIcon />
-          We&apos;ve made a map for you. Click any pin to explore a place.
+      {ready && (
+        <p className="tc-cheer">
+          <PlaneIcon />
+          <span>
+            <b>Bon voyage!</b> Your next trip is all planned. Start exploring, or click any pin to dive into a place.
+          </span>
         </p>
       )}
 

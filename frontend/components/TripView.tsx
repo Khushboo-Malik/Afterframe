@@ -29,7 +29,6 @@ export default function TripView({ videoKey, initial }: { videoKey: string; init
 
   const [filter, setFilter] = useState<Category | "all">("all");
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [explored, setExplored] = useState(false); // hides the "click any pin" hint after the first stop
   const [confirmed, setConfirmedIds] = useState<Set<number>>(new Set());
   const [starting, setStarting] = useState(false);
 
@@ -86,7 +85,6 @@ export default function TripView({ videoKey, initial }: { videoKey: string; init
 
   function openStop(id: number) {
     setSelectedId(id);
-    setExplored(true);
   }
 
   function onConfirm(id: number) {
@@ -180,7 +178,7 @@ export default function TripView({ videoKey, initial }: { videoKey: string; init
                 setSelectedId(null);
               }}
               unmatched={shownUnmatched}
-              showHint={!explored && mapped.length > 0}
+              ready={!processing && mapped.length > 0}
             />
           )}
 

@@ -105,9 +105,13 @@ export default function StopPanel({ place, index, total, videoId, confirmed, onC
         <button type="button" onClick={onPrev} disabled={index === 0} aria-label="Previous stop">
           <ChevronIcon className="back" /> Previous
         </button>
-        <button type="button" className="next" onClick={onNext} disabled={index === total - 1} aria-label="Next stop">
-          Next stop <ChevronIcon />
-        </button>
+        {index === total - 1 ? (
+          <span className="sp-end">Last stop · Bon voyage!</span>
+        ) : (
+          <button type="button" className="next" onClick={onNext} aria-label="Next stop">
+            Next stop <ChevronIcon />
+          </button>
+        )}
       </div>
     </aside>
   );
