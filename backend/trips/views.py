@@ -4,10 +4,11 @@ from rest_framework.decorators import api_view, throttle_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from . import repo, services
+from . import rate_limit, repo, services
 from .serializers import (
     ErrorOutSerializer,
     GridOutSerializer,
+    LimitsOutSerializer,
     SubmitInSerializer,
     SubmitOutSerializer,
     TripOutSerializer,
@@ -70,6 +71,19 @@ class VideoDetailView(APIView):
         if trip is None:
             return _error(services.api_error("not_found"))
         return Response(TripOutSerializer(trip).data)
+
+
+@extend_schema(
+    operation_id="limits_get",
+    summary="Today's site-wide free mapping slots (resets at midnight UTC)",
+    responses={200: LimitsOutSerializer, 503: ErrorOutSerializer},
+)
+@api_view(["GET"])
+def limits(request):
+    status = rate_limit.status()
+    if status is None:
+        return _error(services.api_error("busy"))
+    return Response(status)
 
 
 @extend_schema(exclude=True)

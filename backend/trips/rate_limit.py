@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Literal
 
 import redis
@@ -57,6 +57,25 @@ def check() -> Allowed | Limited:
         log.warning("rate_limit.check: Redis unavailable", exc_info=True)
         return Limited("unavailable")
     return Allowed() if used < global_daily_new() else Limited("global_limit")
+
+
+def status() -> dict | None:
+    """Today's usage for the home page: {"limit", "used", "remaining", "resets_at"}.
+    None when Redis can't be reached (the page then just hides the meter)."""
+    limit = global_daily_new()
+    try:
+        used = int(_redis().get(_key()) or 0)
+    except redis.RedisError:
+        log.warning("rate_limit.status: Redis unavailable", exc_info=True)
+        return None
+    now = datetime.now(UTC)
+    tomorrow = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    return {
+        "limit": limit,
+        "used": min(used, limit),
+        "remaining": max(limit - used, 0),
+        "resets_at": tomorrow.isoformat().replace("+00:00", "Z"),
+    }
 
 
 def record() -> None:

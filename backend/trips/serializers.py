@@ -50,3 +50,10 @@ class SubmitOutSerializer(serializers.Serializer):
 class ErrorOutSerializer(serializers.Serializer):
     code = serializers.CharField()
     message = serializers.CharField()
+
+
+class LimitsOutSerializer(serializers.Serializer):
+    limit = serializers.IntegerField()
+    used = serializers.IntegerField()
+    remaining = serializers.IntegerField()
+    resets_at = serializers.DateTimeField()
