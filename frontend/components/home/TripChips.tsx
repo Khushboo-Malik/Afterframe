@@ -37,7 +37,7 @@ export default function TripChips({ trips }: { trips: VideoOut[] }) {
   return (
     <div className="tchips">
       <span className="tchips-l">Or open one:</span>
-      <button type="button" className={`tchips-arrow prev${edges.start ? " off" : ""}`} aria-label="Scroll trips left" disabled={edges.start} onClick={() => scroll(-1)}>
+      <button type="button" className="tchips-arrow prev" aria-label="Scroll trips left" disabled={edges.start} onClick={() => scroll(-1)}>
         <ChevronIcon />
       </button>
       <div className="tchips-rail" ref={rail}>
@@ -49,7 +49,7 @@ export default function TripChips({ trips }: { trips: VideoOut[] }) {
           </Link>
         ))}
       </div>
-      <button type="button" className={`tchips-arrow next${edges.end ? " off" : ""}`} aria-label="Scroll trips right" disabled={edges.end} onClick={() => scroll(1)}>
+      <button type="button" className="tchips-arrow next" aria-label="Scroll trips right" disabled={edges.end} onClick={() => scroll(1)}>
         <ChevronIcon />
       </button>
     </div>

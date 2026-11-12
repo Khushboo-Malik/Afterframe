@@ -4,6 +4,7 @@ import DemoPlayer from "@/components/DemoPlayer";
 import PasteBox from "@/components/home/PasteBox";
 import SlotMeter from "@/components/home/SlotMeter";
 import TripChips from "@/components/home/TripChips";
+import StreetLines from "@/components/StreetLines";
 import type { GridOut } from "@/lib/api";
 import { listTrips } from "@/lib/api-server";
 
@@ -14,6 +15,7 @@ const CHIP_COUNT = 12;
 export default function Home() {
   return (
     <main className="s-main home">
+      <StreetLines />
       <Suspense fallback={<Hero chips={[]} />}>
         <HeroWithChips />
       </Suspense>

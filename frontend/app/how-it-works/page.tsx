@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { ExtIcon } from "@/components/icons";
+import StreetLines from "@/components/StreetLines";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -68,6 +69,7 @@ const EVAL_COLUMNS = ["Video resolution", "Precision", "Recall", "F1", "Timestam
 export default function HowItWorks() {
   return (
     <main className="hiw">
+      <StreetLines />
       <div>
         <h1>How AfterFrame works</h1>
         <p>
