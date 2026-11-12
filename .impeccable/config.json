@@ -1,0 +1,83 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".superpowers/brainstorm/95311-1794478311/content/explore-map-options.html"
+        ],
+        "createdAt": "2026-11-12T10:13:50.047Z",
+        "reason": "Claude's call: throwaway brainstorm mockup in git-ignored .superpowers/; the flagged elements are small pill tags that intentionally mirror the site's category chip padding"
+      },
+      {
+        "rule": "overused-font",
+        "value": "fraunces",
+        "createdAt": "2026-11-12T10:29:42.000Z",
+        "reason": "Incumbent brand face from the user-approved sub-plan 01 mockups (docs/mockups/mockups.html), recorded in PRODUCT.md Brand Commitments"
+      },
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-11-12T10:29:42.022Z",
+        "reason": "Incumbent body face from the user-approved sub-plan 01 mockups (docs/mockups/mockups.html), recorded in PRODUCT.md Brand Commitments"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/replay.html"
+        ],
+        "createdAt": "2026-11-12T10:29:42.041Z",
+        "reason": "Claude's call: throwaway decision sketch; flagged items are pill chips and map-style callouts/player frames that sit on a map or screen by design"
+      },
+      {
+        "rule": "nested-cards",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/replay.html"
+        ],
+        "createdAt": "2026-11-12T10:29:42.060Z",
+        "reason": "Claude's call: throwaway decision sketch; flagged items are pill chips and map-style callouts/player frames that sit on a map or screen by design"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/atlas.html"
+        ],
+        "createdAt": "2026-11-12T10:29:42.078Z",
+        "reason": "Claude's call: throwaway decision sketch; flagged items are pill chips and map-style callouts/player frames that sit on a map or screen by design"
+      },
+      {
+        "rule": "nested-cards",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/atlas.html"
+        ],
+        "createdAt": "2026-11-12T10:29:42.096Z",
+        "reason": "Claude's call: throwaway decision sketch; flagged items are pill chips and map-style callouts/player frames that sit on a map or screen by design"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/player.html"
+        ],
+        "createdAt": "2026-11-12T10:29:42.112Z",
+        "reason": "Claude's call: throwaway decision sketch; flagged items are pill chips and map-style callouts/player frames that sit on a map or screen by design"
+      },
+      {
+        "rule": "nested-cards",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/player.html"
+        ],
+        "createdAt": "2026-11-12T10:29:42.128Z",
+        "reason": "Claude's call: throwaway decision sketch; flagged items are pill chips and map-style callouts/player frames that sit on a map or screen by design"
+      }
+    ]
+  }
+}

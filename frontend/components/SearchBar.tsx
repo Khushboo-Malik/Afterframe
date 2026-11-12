@@ -10,15 +10,18 @@ import { submitVideo } from "@/lib/api";
 const PLACEHOLDER = "Paste a YouTube or Instagram link — or search mapped trips";
 const LINK_RE = /^(https?:\/\/|www\.)|youtu|instagram/i;
 // Blue (informational) instead of red: not a problem with the link itself.
-const INFO_CODES = new Set(["instagram_unsupported", "rate_limited", "busy"]);
+export const INFO_CODES = new Set(["instagram_unsupported", "rate_limited", "busy"]);
 
 export function looksLikeLink(text: string): boolean {
   return LINK_RE.test(text.trim());
 }
 
-function Bar({ initialQuery }: { initialQuery: string }) {
+/**
+ * Shared by the header search and the home page's big link box: a link is
+ * submitted for mapping (200/202 → its trip page), plain text searches the grid.
+ */
+export function useLinkSubmit(initialQuery: string) {
   const router = useRouter();
-  const errorId = useId();
   const [value, setValue] = useState(initialQuery);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ code: string; message: string } | null>(null);
@@ -29,7 +32,7 @@ function Bar({ initialQuery }: { initialQuery: string }) {
     if (!text || busy) return;
     setError(null);
     if (!looksLikeLink(text)) {
-      router.push(`/?q=${encodeURIComponent(text)}`);
+      router.push(`/?q=${encodeURIComponent(text)}#trips`);
       return;
     }
     setBusy(true);
@@ -42,6 +45,18 @@ function Bar({ initialQuery }: { initialQuery: string }) {
       setError({ code: res.code, message: res.message });
     }
   }
+
+  function onChange(next: string) {
+    setValue(next);
+    if (error) setError(null);
+  }
+
+  return { value, busy, error, onChange, onSubmit };
+}
+
+function Bar({ initialQuery }: { initialQuery: string }) {
+  const errorId = useId();
+  const { value, busy, error, onChange, onSubmit } = useLinkSubmit(initialQuery);
 
   return (
     <form className="s-search" role="search" onSubmit={onSubmit}>
@@ -58,10 +73,7 @@ function Bar({ initialQuery }: { initialQuery: string }) {
           placeholder={PLACEHOLDER}
           value={value}
           disabled={busy}
-          onChange={(e) => {
-            setValue(e.target.value);
-            if (error) setError(null);
-          }}
+          onChange={(e) => onChange(e.target.value)}
         />
         <button type="submit" disabled={busy} aria-label={busy ? "Mapping, please wait" : "Go"} aria-busy={busy || undefined}>
           {busy ? <SpinIcon /> : <SearchIcon />}

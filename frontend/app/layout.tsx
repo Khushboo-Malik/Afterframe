@@ -4,6 +4,7 @@ import { Fraunces, Inter } from "next/font/google";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { Toaster } from "@/components/ui/sonner";
+import { THEME_SCRIPT } from "@/lib/theme-script";
 
 import "./globals.css";
 
@@ -25,7 +26,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${inter.variable} h-full antialiased`}>
+    // suppressHydrationWarning: THEME_SCRIPT sets data-theme on <html> before React hydrates.
+    <html lang="en" className={`${fraunces.variable} ${inter.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="min-h-full flex flex-col">
         <SiteHeader />
         {children}

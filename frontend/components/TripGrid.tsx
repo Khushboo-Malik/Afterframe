@@ -43,7 +43,7 @@ export default function TripGrid({ initial, q }: { initial: GridOut; q: string }
   }
 
   return (
-    <section className="stack" aria-labelledby="trips-h">
+    <section className="stack" id="trips" aria-labelledby="trips-h">
       {q ? (
         <div className="s-row">
           <h2 id="trips-h" className="s-h2">Results for ‘{q}’</h2>

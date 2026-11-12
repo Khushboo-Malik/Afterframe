@@ -24,6 +24,33 @@ export const BulbIcon = ({ className }: P) => (
 export const SpinIcon = ({ className }: P) => (
   <svg className={cls(`spin ${className ?? ""}`.trim())} viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2a6 6 0 1 0 6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
 );
+export const MoonIcon = ({ className }: P) => (
+  <svg className={cls(className)} viewBox="0 0 16 16" aria-hidden="true"><path d="M13.4 9.6A5.6 5.6 0 0 1 6.4 2.6a5.6 5.6 0 1 0 7 7z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>
+);
+export const SunIcon = ({ className }: P) => (
+  <svg className={cls(className)} viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.8" fill="none" stroke="currentColor" strokeWidth="1.7" /><path d="M8 1.6v1.5M8 12.9v1.5M1.6 8h1.5M12.9 8h1.5M3.5 3.5l1 1M11.5 11.5l1 1M3.5 12.5l1-1M11.5 4.5l1-1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
+);
+export const ArrowRightIcon = ({ className }: P) => (
+  <svg className={cls(className)} viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" /></svg>
+);
+export const ChevronIcon = ({ className }: P) => (
+  <svg className={cls(className)} viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" /></svg>
+);
+export const CloseIcon = ({ className }: P) => (
+  <svg className={cls(className)} viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+);
+export const PlusIcon = ({ className }: P) => (
+  <svg className={cls(className)} viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" /></svg>
+);
+export const MinusIcon = ({ className }: P) => (
+  <svg className={cls(className)} viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" /></svg>
+);
+export const FitIcon = ({ className }: P) => (
+  <svg className={cls(className)} viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+);
+export const YouTubeMark = ({ className }: P) => (
+  <svg className={cls(className)} viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="4.5" width="21" height="15" rx="4.5" fill="#e0281b" /><path d="M10 9v6l5.2-3z" fill="#fff" /></svg>
+);
 export const SearchIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
 );

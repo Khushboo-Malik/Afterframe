@@ -20,6 +20,23 @@ export async function getTrip(key: string): Promise<TripOut | null> {
   return res.json();
 }
 
+const FEATURED_MIN_PLACES = 5;
+
+/**
+ * The trip the home page replays: FEATURED_TRIP_KEY when set, otherwise the newest
+ * trip on the grid with at least FEATURED_MIN_PLACES places. Cached for 5 minutes.
+ */
+export async function getFeaturedTrip(newest: GridOut["results"]): Promise<TripOut | null> {
+  "use cache";
+  cacheLife({ stale: 300, revalidate: 300, expire: 3600 });
+  const pinned = process.env.FEATURED_TRIP_KEY;
+  const key = pinned || newest.find((v) => v.place_count >= FEATURED_MIN_PLACES)?.key;
+  if (!key) return null;
+  const res = await fetch(`${backendUrl()}/api/videos/${key}`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
 /** One page of the home grid, cached for 60 seconds per (page, q). */
 export async function listTrips({ page, q }: { page: number; q?: string }): Promise<GridOut> {
   "use cache";

@@ -51,15 +51,10 @@ async function TripLoader({ params }: { params: PageProps<"/v/[videoKey]">["para
 
 function TripSkeleton() {
   return (
-    <main aria-busy="true">
-      <div className="strip">
-        <Skeleton className="thumb" />
-        <div className="strip-t" style={{ flex: "0 1 320px" }}>
-          <Skeleton className="sk-line" />
-          <Skeleton className="sk-line s" />
-        </div>
+    <main className="tp" aria-busy="true">
+      <div className="tp-stage">
+        <Skeleton className="tp-map rounded-none" />
       </div>
-      <Skeleton className="map-area rounded-none" />
     </main>
   );
 }

@@ -1,15 +1,14 @@
 "use client";
 
-import { useReducedMotion } from "motion/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { APIProvider } from "@vis.gl/react-google-maps";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
-import { WarnIcon } from "@/components/icons";
 import LoadingScene from "@/components/LoadingScene";
-import PlaceList from "@/components/PlaceList";
 import StateCard from "@/components/StateCard";
-import TripMap, { type MapFocus } from "@/components/TripMap";
-import TripStrip from "@/components/TripStrip";
+import StopPanel from "@/components/StopPanel";
+import TripInfo from "@/components/TripInfo";
+import TripMap from "@/components/TripMap";
 import { Button } from "@/components/ui/button";
 import { useTripEvents } from "@/hooks/useTripEvents";
 import { submitVideo, videoIdFromKey, youtubeUrl, type Category, type TripOut } from "@/lib/api";
@@ -19,55 +18,82 @@ import { CATEGORY_ORDER, numberPlaces, STAGE_COPY } from "@/lib/trip-state";
 
 const INFO_CODES = new Set(["instagram_unsupported", "rate_limited", "busy"]);
 
+/**
+ * The trip page: the map fills the screen; the trip info floats top-left; opening a stop
+ * docks its panel on the right (a bottom sheet on phones) with ‹ Previous / Next stop ›.
+ */
 export default function TripView({ videoKey, initial }: { videoKey: string; initial: TripOut | null }) {
   const live = initial?.video.status === "processing" && !initial.stale;
   const { state, restart } = useTripEvents(videoKey, initial, live);
-  const reduceMotion = useReducedMotion();
   const videoId = state.video?.video_id ?? videoIdFromKey(videoKey);
 
   const [filter, setFilter] = useState<Category | "all">("all");
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [focus, setFocus] = useState<MapFocus>(null);
   const [confirmed, setConfirmedIds] = useState<Set<number>>(new Set());
   const [starting, setStarting] = useState(false);
 
-  useEffect(() => setConfirmedIds(getConfirmed()), []);
+  // The map fills exactly the space under the header, whose height varies (it wraps on phones).
+  useEffect(() => {
+    const head = document.querySelector<HTMLElement>(".s-head");
+    if (!head) return;
+    const ro = new ResizeObserver(() => document.documentElement.style.setProperty("--head-h", `${head.offsetHeight}px`));
+    ro.observe(head);
+    return () => ro.disconnect();
+  }, []);
 
-  // Places that arrived after the first render get the "rise" animation.
-  const seen = useRef<Set<number> | null>(null);
-  if (seen.current === null) seen.current = new Set(state.places.map((p) => p.id));
-  const newIds = useMemo(
-    () => new Set(state.places.filter((p) => !seen.current!.has(p.id)).map((p) => p.id)),
-    [state.places],
-  );
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is only readable after mount
+    setConfirmedIds(getConfirmed());
+  }, []);
 
   const { mapped, unmatched } = useMemo(() => numberPlaces(state.places), [state.places]);
   const present = CATEGORY_ORDER.filter((c) => state.places.some((p) => p.category === c));
-  const shown = filter === "all" ? mapped : mapped.filter((p) => p.category === filter);
+  const shown = useMemo(() => (filter === "all" ? mapped : mapped.filter((p) => p.category === filter)), [mapped, filter]);
   const shownUnmatched = filter === "all" ? unmatched : unmatched.filter((p) => p.category === filter);
+  const index = shown.findIndex((p) => p.id === selectedId);
+  const selected = index >= 0 ? shown[index] : null;
 
   const processing = state.status === "processing" && !state.stale && !state.error;
   const broken = state.status === "failed" || state.stale || state.error === "failed" || state.error === "stalled";
 
-  function selectFromPin(id: number) {
-    setSelectedId(id);
-    document.getElementById(`place-${id}`)?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
-  }
-  function selectFromCard(id: number) {
-    setSelectedId(id);
-    setFocus((f) => ({ id, seq: (f?.seq ?? 0) + 1 }));
-  }
+  const step = useCallback(
+    (d: 1 | -1) => {
+      if (index < 0) return;
+      const next = shown[index + d];
+      if (next) setSelectedId(next.id);
+    },
+    [index, shown],
+  );
+
+  // ← / → walk the route, Esc closes the stop (not while typing in the header search).
+  // Capture phase: otherwise Google's map takes the arrow keys to pan once a pin has focus.
+  useEffect(() => {
+    if (!selected) return;
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      if (e.key === "ArrowRight") step(1);
+      else if (e.key === "ArrowLeft") step(-1);
+      else if (e.key === "Escape") setSelectedId(null);
+      else return;
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [selected, step]);
+
   function onConfirm(id: number) {
     setConfirmed(id, true);
     setConfirmedIds((s) => new Set(s).add(id));
   }
+
   async function startRun() {
     setStarting(true);
     const res = await submitVideo(youtubeUrl(videoId));
     setStarting(false);
     if (res.ok) {
       setSelectedId(null);
-      setFocus(null);
       restart();
     } else if (INFO_CODES.has(res.code)) {
       toast(res.message);
@@ -79,12 +105,14 @@ export default function TripView({ videoKey, initial }: { videoKey: string; init
   // ---- never mapped (404) ----
   if (!state.video && !processing) {
     return (
-      <main>
-        <StateCard thumbnailUrl={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} message="This video hasn't been mapped yet.">
-          <Button type="button" className="btn" onClick={startRun} disabled={starting}>
-            {starting ? "Starting…" : "Map this video"}
-          </Button>
-        </StateCard>
+      <main className="tp">
+        <div className="tp-stage">
+          <StateCard thumbnailUrl={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} message="This video hasn't been mapped yet.">
+            <Button type="button" className="btn" onClick={startRun} disabled={starting}>
+              {starting ? "Starting…" : "Map this video"}
+            </Button>
+          </StateCard>
+        </div>
       </main>
     );
   }
@@ -100,65 +128,76 @@ export default function TripView({ videoKey, initial }: { videoKey: string; init
         ? "0 places"
         : `${plural(state.places.length, "place")} · ${verified} verified`;
   const showChips = !processing && !broken && state.places.length > 0;
+  const showMap = !broken && !(processing && mapped.length === 0) && !(!processing && state.places.length === 0);
 
   return (
-    <main>
-      {processing && mapped.length > 0 && (
-        <div className="prog" role="progressbar" aria-label="Mapping in progress">
-          <i />
-        </div>
-      )}
-      {state.status === "partial" && (
-        <div className="banner" role="status">
-          <WarnIcon /> Some places may be missing — we hit a limit while checking. Try again tomorrow.
-        </div>
-      )}
-      {state.video && (
-        <TripStrip
-          video={state.video}
-          meta={meta}
-          live={processing}
-          categories={showChips ? present : []}
-          active={filter}
-          onFilter={(c) => {
-            setFilter(c);
-            setFocus(null);
-          }}
-        />
-      )}
+    <main className="tp">
+      <MapsProvider>
+        <div className="tp-stage">
+          {processing && mapped.length > 0 && (
+            <div className="prog" role="progressbar" aria-label="Mapping in progress">
+              <i />
+            </div>
+          )}
 
-      {broken ? (
-        <StateCard tone="bad" message="Something went wrong on our side.">
-          <Button type="button" className="btn" onClick={startRun} disabled={starting}>
-            {starting ? "Starting…" : "Try again"}
-          </Button>
-        </StateCard>
-      ) : processing && mapped.length === 0 ? (
-        <LoadingScene stage={state.stage} found={state.places.length} />
-      ) : !processing && state.places.length === 0 ? (
-        <StateCard message="No places found in this video — it might not be a travel vlog." />
-      ) : (
-        <TripMap
-          places={shown}
-          selectedId={selectedId}
-          focus={focus}
-          onPinClick={selectFromPin}
-          onShowAll={() => setFocus(null)}
-        />
-      )}
+          {broken ? (
+            <StateCard tone="bad" message="Something went wrong on our side.">
+              <Button type="button" className="btn" onClick={startRun} disabled={starting}>
+                {starting ? "Starting…" : "Try again"}
+              </Button>
+            </StateCard>
+          ) : processing && mapped.length === 0 ? (
+            <LoadingScene stage={state.stage} found={state.places.length} />
+          ) : !processing && state.places.length === 0 ? (
+            <StateCard message="No places found in this video — it might not be a travel vlog." />
+          ) : (
+            <TripMap
+              places={shown}
+              selectedId={selected?.id ?? null}
+              panelOpen={!!selected}
+              live={processing}
+              onSelect={setSelectedId}
+              onClear={() => setSelectedId(null)}
+            />
+          )}
 
-      {!broken && (
-        <PlaceList
-          mapped={shown}
-          unmatched={shownUnmatched}
-          videoId={videoId}
-          selectedId={selectedId}
-          newIds={newIds}
-          confirmed={confirmed}
-          onSelect={selectFromCard}
-          onConfirm={onConfirm}
-        />
-      )}
+          {state.video && showMap && (
+            <TripInfo
+              video={state.video}
+              meta={meta}
+              live={processing}
+              partial={state.status === "partial"}
+              categories={showChips ? present : []}
+              active={filter}
+              onFilter={(c) => {
+                setFilter(c);
+                setSelectedId(null);
+              }}
+              unmatched={shownUnmatched}
+            />
+          )}
+
+          {selected && (
+            <StopPanel
+              place={selected}
+              index={index}
+              total={shown.length}
+              videoId={videoId}
+              confirmed={confirmed.has(selected.id)}
+              onConfirm={onConfirm}
+              onPrev={() => step(-1)}
+              onNext={() => step(1)}
+              onClose={() => setSelectedId(null)}
+            />
+          )}
+        </div>
+      </MapsProvider>
     </main>
   );
+}
+
+/** Loads the Google Maps JS API once, for the map and Google's place card in the stop panel. */
+function MapsProvider({ children }: { children: ReactNode }) {
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  return apiKey ? <APIProvider apiKey={apiKey}>{children}</APIProvider> : <>{children}</>;
 }

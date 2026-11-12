@@ -4,14 +4,29 @@ import { useState } from "react";
 
 import { PlayIcon } from "@/components/icons";
 
-/** Lazy YouTube embed: just a thumbnail until clicked. Hidden until the demo exists. */
+/** Lazy YouTube embed: just a thumbnail until clicked. A labelled placeholder until the demo exists. */
 export default function DemoPlayer() {
   const id = process.env.NEXT_PUBLIC_DEMO_YOUTUBE_ID;
   const [playing, setPlaying] = useState(false);
-  if (!id) return null;
+  if (!id) {
+    return (
+      <section className="demo" id="demo" aria-label="Demo video">
+        <div className="demo-v demo-ph">
+          <span className="demo-ph-play" aria-hidden="true">
+            <PlayIcon />
+          </span>
+          <span className="demo-ph-txt">
+            <b className="demo-ph-t">Demo video</b>
+            <span className="demo-ph-s">Coming soon · a short walk-through of AfterFrame</span>
+          </span>
+        </div>
+        <p className="demo-cap">See AfterFrame in action</p>
+      </section>
+    );
+  }
 
   return (
-    <section className="demo" aria-label="Demo video">
+    <section className="demo" id="demo" aria-label="Demo video">
       {playing ? (
         <div className="demo-v">
           <iframe
