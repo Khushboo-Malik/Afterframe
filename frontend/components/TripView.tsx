@@ -4,6 +4,7 @@ import { APIProvider } from "@vis.gl/react-google-maps";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
+import { PinIcon } from "@/components/icons";
 import LoadingScene from "@/components/LoadingScene";
 import StateCard from "@/components/StateCard";
 import StopPanel from "@/components/StopPanel";
@@ -29,6 +30,7 @@ export default function TripView({ videoKey, initial }: { videoKey: string; init
 
   const [filter, setFilter] = useState<Category | "all">("all");
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [explored, setExplored] = useState(false); // hides the "click any pin" hint after the first stop
   const [confirmed, setConfirmedIds] = useState<Set<number>>(new Set());
   const [starting, setStarting] = useState(false);
 
@@ -60,7 +62,7 @@ export default function TripView({ videoKey, initial }: { videoKey: string; init
     (d: 1 | -1) => {
       if (index < 0) return;
       const next = shown[index + d];
-      if (next) setSelectedId(next.id);
+      if (next) openStop(next.id);
     },
     [index, shown],
   );
@@ -82,6 +84,11 @@ export default function TripView({ videoKey, initial }: { videoKey: string; init
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
   }, [selected, step]);
+
+  function openStop(id: number) {
+    setSelectedId(id);
+    setExplored(true);
+  }
 
   function onConfirm(id: number) {
     setConfirmed(id, true);
@@ -156,7 +163,7 @@ export default function TripView({ videoKey, initial }: { videoKey: string; init
               selectedId={selected?.id ?? null}
               panelOpen={!!selected}
               live={processing}
-              onSelect={setSelectedId}
+              onSelect={openStop}
               onClear={() => setSelectedId(null)}
             />
           )}
@@ -175,6 +182,13 @@ export default function TripView({ videoKey, initial }: { videoKey: string; init
               }}
               unmatched={shownUnmatched}
             />
+          )}
+
+          {showMap && !selected && !explored && mapped.length > 0 && (
+            <p className="tp-hint" role="status">
+              <PinIcon />
+              We&apos;ve made a map for you. Click any pin to explore that place.
+            </p>
           )}
 
           {selected && (

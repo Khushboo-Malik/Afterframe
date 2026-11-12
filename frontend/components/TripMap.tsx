@@ -7,7 +7,7 @@ import { FitIcon, MinusIcon, PlusIcon } from "@/components/icons";
 import { useSiteTheme } from "@/lib/theme";
 import { CATEGORY_COLORS, type NumberedPlace } from "@/lib/trip-state";
 
-const PANEL_W = 396; // desktop stop panel width + gap (see .sp in globals.css)
+const PANEL_W = 356; // desktop stop panel width + gap (see .sp in globals.css)
 const CARD_W = 372; // desktop trip card width + gap (see .tc)
 const PHONE = 720;
 const STOP_ZOOM = 15;
@@ -217,8 +217,8 @@ function Controls({ onFit }: { onFit: () => void }) {
       <button type="button" aria-label="Zoom out" onClick={() => zoom(-1)}>
         <MinusIcon />
       </button>
-      <button type="button" className="mc-fit" onClick={onFit}>
-        <FitIcon /> Show all
+      <button type="button" className="mc-fit" aria-label="Show all pins" onClick={onFit}>
+        <FitIcon /> <span className="mc-fit-l">Show all</span>
       </button>
     </div>
   );
