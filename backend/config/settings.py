@@ -39,6 +39,10 @@ if not SECRET_KEY:
 
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "localhost,127.0.0.1")
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
+if DEBUG:
+    # Local dev: the Next.js site on :3000 proxies /admin to Django, so the admin
+    # login form is posted from that origin (prod sets the Vercel origin via env).
+    CSRF_TRUSTED_ORIGINS += ["http://localhost:3000", "http://127.0.0.1:3000"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
