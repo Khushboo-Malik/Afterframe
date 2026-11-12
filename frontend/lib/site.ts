@@ -3,5 +3,5 @@ export const SITE = {
   ownerName: "Khushboo Malik",
   githubProfileUrl: "https://github.com/Khushboo-Malik",
   repoUrl: "https://github.com/Khushboo-Malik/afterframe",
-  linkedinUrl: "",
+  linkedinUrl: "https://www.linkedin.com/in/khushboo-malik01/",
 };
