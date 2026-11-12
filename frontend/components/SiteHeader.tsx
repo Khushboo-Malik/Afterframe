@@ -20,7 +20,7 @@ export default function SiteHeader() {
       {/* The home page has its own big link box: CSS hides this search there and lets the spacer push the nav right. */}
       <span className="s-flex" aria-hidden="true" />
       <nav className="s-nav" aria-label="Site">
-        <Link href="/#trips">Mapped trips</Link>
+        <Link href="/trips">Mapped trips</Link>
         <Link href="/how-it-works">How it works</Link>
         <a href={SITE.repoUrl} target="_blank" rel="noopener">
           GitHub

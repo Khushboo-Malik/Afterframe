@@ -77,6 +77,15 @@
         ],
         "createdAt": "2026-11-12T10:29:42.128Z",
         "reason": "Claude's call: throwaway decision sketch; flagged items are pill chips and map-style callouts/player frames that sit on a map or screen by design"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".superpowers/brainstorm/95311-1794478311/content/trips-page-backgrounds.html"
+        ],
+        "createdAt": "2026-11-12T11:27:58.297Z",
+        "reason": "Claude's call: throwaway mockup in git-ignored .superpowers/; flagged items are small map-label pills and the map note, sized like map labels by design"
       }
     ]
   }

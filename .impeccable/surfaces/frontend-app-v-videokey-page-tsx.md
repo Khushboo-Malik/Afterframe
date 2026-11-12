@@ -12,7 +12,7 @@ Memorable moment: Next stop gliding the map along the vlog's route.
 
 ## Direction contract
 THESIS: The trip is a route you re-walk, not a list you scroll; refuses the small-map-over-card-list default and Google Maps' own red markers and info windows.
-OWN-WORLD: same tokens; muted custom map style; numbered category pins (solid verified, hollow unconfirmed, highlighter-yellow current) with small name labels that hide on collision; thin dotted accent arcs in video order, the hop into the open stop brighter; floating white surfaces with soft offset shadow, Fraunces headings.
+OWN-WORLD: same tokens; muted custom map style; numbered category pins (solid verified, hollow unconfirmed; the open stop in the ultramarine accent, user asked for not-yellow on 2026-11-12) with small name labels that hide on collision; thin dotted accent arcs in video order, the hop into the open stop brighter; floating white surfaces with soft offset shadow, Fraunces headings.
 STORY: The visitor sees the whole trip with names, clicks a pin or Next; the map glides and zooms there and the stop panel shows photo, rating, description and timestamp; they walk stop by stop and jump into the vlog.
 FIRST VIEWPORT: header; map fills the rest of the viewport; floating trip card top-left (thumbnail, title, counts, category chips, Watch on YouTube, "n not found on the map"); stop panel docked right (~380px) with "Stop k of n" and ‹ Previous / Next ›; Show all plus zoom controls; phones get a bottom sheet.
 FORM: user-pinned composition "Trip replay" (option C of the explore-map mockups); the user's pin beats the roll. seed:1bb39a280f354971

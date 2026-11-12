@@ -4,7 +4,6 @@ import { APIProvider } from "@vis.gl/react-google-maps";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
-import { PinIcon } from "@/components/icons";
 import LoadingScene from "@/components/LoadingScene";
 import StateCard from "@/components/StateCard";
 import StopPanel from "@/components/StopPanel";
@@ -181,15 +180,10 @@ export default function TripView({ videoKey, initial }: { videoKey: string; init
                 setSelectedId(null);
               }}
               unmatched={shownUnmatched}
+              showHint={!explored && mapped.length > 0}
             />
           )}
 
-          {showMap && !selected && !explored && mapped.length > 0 && (
-            <p className="tp-hint" role="status">
-              <PinIcon />
-              We&apos;ve made a map for you. Click any pin to explore that place.
-            </p>
-          )}
 
           {selected && (
             <StopPanel

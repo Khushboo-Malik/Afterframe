@@ -43,20 +43,13 @@ export default function TripGrid({ initial, q }: { initial: GridOut; q: string }
   }
 
   return (
-    <section className="stack" id="trips" aria-labelledby="trips-h">
-      {q ? (
-        <div className="s-row">
-          <h2 id="trips-h" className="s-h2">Results for ‘{q}’</h2>
-          <Link href="/">Clear search</Link>
-        </div>
-      ) : (
-        <h2 id="trips-h" className="s-h2">Mapped trips</h2>
-      )}
-
+    <section className="stack" id="trips" aria-label={q ? `Mapped trips matching ${q}` : "Mapped trips"}>
       {items.length === 0 ? (
         <div className="empty">
           <b>{q ? `No mapped trips match ‘${q}’.` : "No mapped trips yet."}</b>
-          <span>Paste a YouTube link above to map {q ? "a new one" : "the first one"}.</span>
+          <span>
+            <Link href="/">Paste a YouTube link on the home page</Link> to map {q ? "a new one" : "the first one"}.
+          </span>
         </div>
       ) : (
         <div className="grid">

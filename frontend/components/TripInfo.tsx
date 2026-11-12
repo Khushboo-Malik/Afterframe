@@ -2,7 +2,7 @@
 
 import { useId, useState, type CSSProperties } from "react";
 
-import { ChevronIcon, ExtIcon, PlayIcon, WarnIcon } from "@/components/icons";
+import { ChevronIcon, PinIcon, PlayIcon, WarnIcon } from "@/components/icons";
 import { youtubeAt, youtubeUrl, type Category, type PlaceOut, type VideoOut } from "@/lib/api";
 import { formatTimestamp } from "@/lib/format";
 import { CATEGORY_COLORS, CATEGORY_LABELS } from "@/lib/trip-state";
@@ -16,18 +16,25 @@ type Props = {
   active: Category | "all";
   onFilter: (c: Category | "all") => void;
   unmatched: PlaceOut[]; // mentioned in the video but not found on the map
+  showHint: boolean; // "click any pin" until the first stop is opened
 };
 
 /** Floats over the map's top-left corner: what this trip is, the filters, and the places with no pin. */
-export default function TripInfo({ video, meta, live, partial, categories, active, onFilter, unmatched }: Props) {
+export default function TripInfo({ video, meta, live, partial, categories, active, onFilter, unmatched, showHint }: Props) {
   const [open, setOpen] = useState(false);
   const listId = useId();
 
   return (
     <section className="tc" aria-label="Trip">
       <div className="tc-top">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="tc-thumb" src={video.thumbnail_url || `https://i.ytimg.com/vi/${video.video_id}/hqdefault.jpg`} alt="" />
+        {/* The full video is one small, quiet way out to YouTube: the thumbnail itself. */}
+        <a className="tc-thumb" href={youtubeUrl(video.video_id)} target="_blank" rel="noopener" aria-label="Watch the full video on YouTube (opens in a new tab)" title="Watch on YouTube">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={video.thumbnail_url || `https://i.ytimg.com/vi/${video.video_id}/hqdefault.jpg`} alt="" />
+          <span className="tc-play" aria-hidden="true">
+            <PlayIcon />
+          </span>
+        </a>
         <div className="tc-t">
           <h1>{video.title}</h1>
           <p>
@@ -35,6 +42,13 @@ export default function TripInfo({ video, meta, live, partial, categories, activ
           </p>
         </div>
       </div>
+
+      {showHint && (
+        <p className="tc-hint">
+          <PinIcon />
+          We&apos;ve made a map for you. Click any pin to explore a place.
+        </p>
+      )}
 
       {partial && (
         <p className="tc-warn" role="status">
@@ -63,11 +77,8 @@ export default function TripInfo({ video, meta, live, partial, categories, activ
         </div>
       )}
 
+      {unmatched.length > 0 && (
       <div className="tc-foot">
-        <a className="yt" href={youtubeUrl(video.video_id)} target="_blank" rel="noopener">
-          Watch on YouTube
-          <ExtIcon />
-        </a>
         {unmatched.length > 0 && (
           <button type="button" className={`tc-unm${open ? " open" : ""}`} aria-expanded={open} aria-controls={listId} onClick={() => setOpen((o) => !o)}>
             {unmatched.length} not found on the map
@@ -75,6 +86,7 @@ export default function TripInfo({ video, meta, live, partial, categories, activ
           </button>
         )}
       </div>
+      )}
 
       {open && unmatched.length > 0 && (
         <ul className="tc-list" id={listId}>

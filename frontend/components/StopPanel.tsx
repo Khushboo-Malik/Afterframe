@@ -86,7 +86,7 @@ export default function StopPanel({ place, index, total, videoId, confirmed, onC
 
         <div className="sp-actions">
           <a className="sp-watch" href={youtubeAt(videoId, place.timestamp_sec)} target="_blank" rel="noopener" aria-label={`Watch from ${formatTimestamp(place.timestamp_sec)} on YouTube (opens in a new tab)`}>
-            <PlayIcon /> Watch at {formatTimestamp(place.timestamp_sec)}
+            <PlayIcon /> {formatTimestamp(place.timestamp_sec)} on YouTube
           </a>
           {place.maps_url && (
             <a className="gm" href={place.maps_url} target="_blank" rel="noopener">

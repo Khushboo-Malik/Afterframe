@@ -32,7 +32,7 @@ export function useLinkSubmit(initialQuery: string) {
     if (!text || busy) return;
     setError(null);
     if (!looksLikeLink(text)) {
-      router.push(`/?q=${encodeURIComponent(text)}#trips`);
+      router.push(`/trips?q=${encodeURIComponent(text)}`);
       return;
     }
     setBusy(true);
