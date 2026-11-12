@@ -2,7 +2,6 @@ import { Suspense } from "react";
 
 import DemoPlayer from "@/components/DemoPlayer";
 import PasteBox from "@/components/home/PasteBox";
-import SlotMeter from "@/components/home/SlotMeter";
 import TripChips from "@/components/home/TripChips";
 import StreetLines from "@/components/StreetLines";
 import type { GridOut } from "@/lib/api";
@@ -45,7 +44,6 @@ function Hero({ chips }: { chips: GridOut["results"] }) {
       <p className="hx-sub">Every place in the video, checked on Google Maps and pinned at its timestamp.</p>
       <PasteBox initialQuery="" />
       <div className="hx-row">
-        <SlotMeter />
         <TripChips trips={chips} />
       </div>
     </section>

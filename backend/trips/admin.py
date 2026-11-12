@@ -1,4 +1,4 @@
-"""Owner-only admin: its one job is hiding unsuitable videos."""
+"""Owner-only admin: choose which trips are listed (Featured) and hide unsuitable ones."""
 
 from django.contrib import admin
 
@@ -22,18 +22,18 @@ class PlaceInline(admin.TabularInline):
 
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
-    list_display = ("title", "status", "place_count", "is_hidden", "created_at")
-    list_editable = ("is_hidden",)
-    list_filter = ("status", "is_hidden", "platform")
+    list_display = ("title", "status", "place_count", "is_featured", "is_hidden", "created_at")
+    list_editable = ("is_featured", "is_hidden")
+    list_filter = ("status", "is_featured", "is_hidden", "platform")
     search_fields = ("title",)
     ordering = ("-created_at",)
     inlines = [PlaceInline]
-    readonly_fields = [f.name for f in Video._meta.fields if f.name != "is_hidden"]
+    readonly_fields = [f.name for f in Video._meta.fields if f.name not in ("is_hidden", "is_featured")]
 
     def has_add_permission(self, request):
         return False  # videos come from the API only
 
     def save_model(self, request, obj, form, change):
-        # Write only is_hidden, so a save never overwrites what a running job
+        # Write only the two owner flags, so a save never overwrites what a running job
         # is updating (status, stage, place_count, updated_at...).
-        obj.save(update_fields=["is_hidden"])
+        obj.save(update_fields=["is_hidden", "is_featured"])

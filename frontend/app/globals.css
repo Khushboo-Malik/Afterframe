@@ -189,11 +189,6 @@ body:has(main.home) .s-nav a[href="/"], body:has(main.trips) .s-nav a[href="/tri
 .paste-err { margin: 10px 0 0; padding: 9px 14px; border-radius: 10px; background: var(--af-bad-soft); color: var(--af-bad); font-size: 14px; font-weight: 500; text-align: left; }
 .paste-err.info { background: var(--af-accent-soft); color: var(--af-ink); }
 .hx-row { margin-top: 20px; width: min(1240px, 100%); display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px 28px; font-size: 15.5px; color: var(--af-muted); }
-.slots { display: flex; align-items: center; gap: 10px; min-height: 22px; white-space: nowrap; }
-.slot-cells { display: flex; gap: 5px; }
-.slot-cells i { width: 12px; height: 20px; border-radius: 3px; border: 1.5px dashed var(--af-faint); }
-.slot-cells i.on { border: 0; background: var(--af-accent); }
-.slots b { color: var(--af-ink); font-weight: 600; }
 .tchips { display: flex; align-items: center; gap: 8px; min-width: 0; max-width: 820px; }
 .tchips-l { flex: none; margin-right: 2px; }
 .tchips-rail { display: flex; gap: 8px; min-width: 0; padding: 2px; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; }

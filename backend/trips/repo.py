@@ -213,10 +213,12 @@ def get_trip(key: str, *, include_hidden: bool = False) -> Trip | None:
 
 
 def list_grid(page: int, q: str = "") -> tuple[list[Video], bool]:
-    """Home grid: done or partial, not hidden, with places, newest first."""
+    """The public list (home chips, /trips): trips the owner featured in /admin,
+    done or partial, not hidden, with places, newest first."""
     qs = Video.objects.filter(
         status__in=[Video.Status.DONE, Video.Status.PARTIAL],
         is_hidden=False,
+        is_featured=True,
         place_count__gt=0,
     ).order_by("-created_at", "key")
     if q:

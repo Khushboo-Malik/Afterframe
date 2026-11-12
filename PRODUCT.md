@@ -28,7 +28,8 @@ The AI watches the video itself (Gemini reads the YouTube video by URL; no scrap
 ## Capabilities and Constraints
 
 - YouTube videos and Shorts up to 30 minutes, public only. Instagram links answer "coming soon".
-- **Site-wide limit: 5 new videos per UTC day.** Viewing is unlimited. The home page should show how many free slots are left today (confirmed). Re-opening an already-mapped trip uses no slot.
+- **Site-wide limit: 10 new videos per UTC day** (raised from 5 on 2026-11-12). Viewing is unlimited. The slots-left meter was removed at the user's request: people only see the "slots used up" error when the limit is hit. Re-opening an already-mapped trip uses no slot.
+- **The public trip list is curated:** only trips the owner ticks as Featured in /admin appear on the home page and /trips; any trip still opens at its own link.
 - Each mapped place can show Google's own place card (photo, star rating, attribution) via the Places UI Kit.
 - Light/dark follows the device until the visitor picks a theme with the header toggle (built 2026-11-12); the choice is remembered.
 

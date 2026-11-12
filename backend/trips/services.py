@@ -28,7 +28,7 @@ ERRORS: dict[str, tuple[int, str]] = {
     "not_found": (404, "We can't open that video. Is it public?"),
     "private": (403, "We can't open that video. Is it public?"),
     "too_long": (422, "That one's over 30 minutes — try a shorter vlog."),
-    "rate_limited": (429, "Today's free mapping slots are used up 🎒 — explore the trips below."),
+    "rate_limited": (429, "Today's free mapping slots are used up 🎒 — explore the mapped trips instead, or try again tomorrow."),
     "busy": (503, "We're a bit busy — try again in a minute."),
     "failed": (500, "Something went wrong on our side."),
 }

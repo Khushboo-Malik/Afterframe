@@ -41,6 +41,9 @@ class Video(models.Model):
     error_code = models.CharField(max_length=32, null=True, blank=True)
     place_count = models.PositiveIntegerField(default=0)
     is_hidden = models.BooleanField(default=False)
+    # Listed on the home page and /trips only when the owner ticks it in /admin.
+    # db_default: repo.claim_video inserts rows with raw SQL that doesn't name this column.
+    is_featured = models.BooleanField("featured", default=False, db_default=False)
     run_id = models.UUIDField(default=uuid.uuid4)  # the current run; see repo.claim_video
 
     gemini_input_tokens = models.PositiveIntegerField(default=0)
