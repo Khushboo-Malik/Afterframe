@@ -13,9 +13,10 @@ ENV UV_COMPILE_BYTECODE=1 \
 
 WORKDIR /app
 # Dependencies first, so code-only changes reuse this cached layer.
+# No `RUN --mount=type=cache` here: Railway rejects a cache mount unless its id
+# names one service (s/<service-id>-...), and web and worker share this file.
 COPY pyproject.toml uv.lock ./
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev --no-install-project
+RUN uv sync --locked --no-dev --no-install-project --no-cache
 
 COPY . .
 # Throwaway build-time values: settings refuse to load without a secret key
