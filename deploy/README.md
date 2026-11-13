@@ -24,7 +24,7 @@ Railway no longer lets new services use a `railway.toml`, so these settings are 
 | Start Command | *(empty: the Dockerfile's gunicorn command)* | `celery -A config worker -B --schedule /tmp/celerybeat-schedule --max-memory-per-child 300000 --loglevel INFO` |
 | Pre-deploy Command | `python manage.py migrate --noinput` | *(empty)* |
 | Healthcheck Path | `/api/healthz` | *(empty)* |
-| Public domain | Settings → Networking → Generate Domain (the image listens on Railway's `PORT`) | none |
+| Public domain | Settings → Networking → Generate Domain, port **8000** (`PORT=8000` is set as a variable, so the domain and the healthcheck both use it) | none |
 | Replicas | 1 | **exactly 1** (the daily jobs run inside it) |
 
 **Redis:** the Railway Redis template (+ New → Database → Redis). Other services reach it through `REDIS_URL=${{Redis.REDIS_URL}}`.
