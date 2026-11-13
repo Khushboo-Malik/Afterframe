@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
-// Server-only. Locally Django on :8000; in prod http://<EC2 Elastic IP>.
+// Server-only. Locally Django on :8000; in prod the Railway web service, as a
+// full URL with no trailing slash: https://<web>.up.railway.app
 // The fallback lets CI build without any secrets.
 const backendUrl = process.env.BACKEND_URL ?? "http://localhost:8000";
 
