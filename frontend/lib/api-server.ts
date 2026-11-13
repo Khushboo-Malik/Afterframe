@@ -20,13 +20,27 @@ export async function getTrip(key: string): Promise<TripOut | null> {
   return res.json();
 }
 
-/** One page of the home grid, cached for 60 seconds per (page, q). */
+/**
+ * One page of the home grid, cached for 60 seconds per (page, q).
+ *
+ * `next build` prerenders "/" and calls this. If the backend can't be reached
+ * then (CI has none; on Vercel it may be redeploying), return an empty list
+ * instead of throwing: a throw inside "use cache" fails the whole build even
+ * though the page catches it. The page refills within 60 s. Outside the build,
+ * errors still throw, so a failed refresh never caches an empty list.
+ */
 export async function listTrips({ page, q }: { page: number; q?: string }): Promise<GridOut> {
   "use cache";
   cacheLife({ stale: 60, revalidate: 60, expire: 3600 });
   const params = new URLSearchParams({ page: String(page) });
   if (q) params.set("q", q);
-  const res = await fetch(`${backendUrl()}/api/videos?${params}`);
-  if (!res.ok) throw new Error(`GET /api/videos ${res.status}`);
-  return res.json();
+  try {
+    const res = await fetch(`${backendUrl()}/api/videos?${params}`);
+    if (!res.ok) throw new Error(`GET /api/videos ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    if (process.env.NEXT_PHASE !== "phase-production-build") throw err;
+    console.warn(`listTrips: backend unreachable during build, prerendering an empty list (${err})`);
+    return { results: [], has_more: false };
+  }
 }
