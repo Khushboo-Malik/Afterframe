@@ -16,7 +16,9 @@ MAX_AGENT_SEARCHES_PER_CANDIDATE = 2
 AGENT_MAX_TURNS = 4
 MAX_AGENT_CANDIDATES_PER_VIDEO = 6
 RESOLVE_CONCURRENCY = 3
-CELERY_CONCURRENCY = 2
+# One mapping at a time keeps the worker near 175 MB, inside Railway's $5 plan.
+# A second link submitted meanwhile waits in the queue (a run takes ~15-35 s).
+CELERY_CONCURRENCY = 1
 STALE_PROCESSING_SECONDS = 900
 PARTIAL_RETRY_SECONDS = 86400
 SSE_POLL_SECONDS = 1.0

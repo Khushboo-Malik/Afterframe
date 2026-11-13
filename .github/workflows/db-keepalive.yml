@@ -1,6 +1,6 @@
 # BACKUP keep-alive for the free Supabase project (free projects pause after
 # 7 days without activity and don't wake up on their own).
-# The primary is the Celery Beat job db_keepalive_task on the EC2 server.
+# The primary is the daily db_keepalive_task, scheduled inside the Railway worker.
 # This is only the backup because GitHub disables scheduled workflows after
 # 60 days without repo activity.
 #

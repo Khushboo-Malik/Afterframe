@@ -11,7 +11,9 @@ app = Celery("afterframe")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 
-# Daily jobs (times are UTC). Run the scheduler with: celery -A config beat
+# Daily jobs (times are UTC). In production the scheduler runs inside the one
+# worker (`celery -A config worker -B`), so there is no separate beat service.
+# Keep exactly one worker replica, or each job would run once per replica.
 app.conf.beat_schedule = {
     "refresh-places": {
         "task": "trips.tasks.refresh_places_task",

@@ -1,6 +1,6 @@
-# AfterFrame backend image. One image runs every backend service in
-# deploy/docker-compose.prod.yml: web (gunicorn + uvicorn), Celery worker and beat.
-# CI builds it for linux/amd64 (the EC2 t3 server) in .github/workflows/deploy.yml.
+# AfterFrame backend image. Railway builds it from backend/ for both backend
+# services: "web" uses the default command below, and "worker" overrides it
+# with its Celery start command (see deploy/README.md).
 
 # --- Stage 1: install dependencies with uv and collect the admin's static files ---
 FROM python:3.14-slim AS build
@@ -38,6 +38,6 @@ WORKDIR /app
 USER app
 EXPOSE 8000
 
-# The compose file sets each service's command; this default is the web server.
-CMD ["gunicorn", "config.asgi:application", "-k", "uvicorn_worker.UvicornWorker", \
-     "-w", "1", "--timeout", "120", "-b", "0.0.0.0:8000"]
+# The web server. It listens on $PORT, which Railway sets (8000 when unset).
+# `exec` makes gunicorn PID 1 so it gets the stop signal directly.
+CMD ["sh", "-c", "exec gunicorn config.asgi:application -k uvicorn_worker.UvicornWorker -w 1 --timeout 120 -b 0.0.0.0:${PORT:-8000}"]

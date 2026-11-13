@@ -2,10 +2,7 @@
 
     python manage.py seed_examples <youtube-url> [<youtube-url> ...]
 
-On the server (Session Manager shell, as root in /opt/afterframe):
-
-    docker compose -f deploy/docker-compose.prod.yml exec web \\
-        python manage.py seed_examples <url1> <url2> ...
+In production, run it inside the Railway "web" service (see deploy/README.md).
 
 Each link goes through the same path as the website (YouTube checks, claim,
 Celery job), but without checking or counting the site-wide daily limit.
