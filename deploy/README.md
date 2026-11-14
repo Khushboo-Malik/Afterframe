@@ -39,12 +39,11 @@ Railway no longer lets new services use a `railway.toml`, so these settings are 
 
 ## One-off commands (createsuperuser, seed_examples)
 
-Use the Railway CLI on your own laptop (`railway login`, then `railway link` to this project):
+Railway → **Web** → **Console** tab opens a shell inside the running container (the Railway CLI's `railway ssh --service Web` does the same). That shell doesn't use the image's PATH, so call the app's Python by its full path:
 
 ```bash
-railway ssh --service web          # a shell inside the running web container
-python manage.py createsuperuser
-python manage.py seed_examples <url1> <url2> ...   # skips the daily limit, one link at a time
+/opt/venv/bin/python manage.py createsuperuser
+/opt/venv/bin/python manage.py seed_examples <url1> <url2> ...   # skips the daily limit, one link at a time
 ```
 
 Then open `/admin` → Videos and tick **featured** for each trip that should show on the home page and `/trips`.
