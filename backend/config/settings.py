@@ -106,6 +106,13 @@ CACHES = {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": REDIS_URL,
         "KEY_PREFIX": "afterframe",
+        "OPTIONS": {
+            # Reuse connections across requests (see config/redis_pool.py).
+            "pool_class": "config.redis_pool.SharedConnectionPool",
+            # PING a connection that sat idle > 30 s before using it, so one
+            # dropped by the network is replaced instead of failing a request.
+            "health_check_interval": 30,
+        },
     }
 }
 
