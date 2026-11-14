@@ -1,7 +1,6 @@
-// Owner details for the footer and How it works. Leave a URL empty to hide its link.
+// Owner details for the header and footer. Leave linkedinUrl empty to show the name without a link.
 export const SITE = {
   ownerName: "Khushboo Malik",
-  githubProfileUrl: "https://github.com/Khushboo-Malik",
   repoUrl: "https://github.com/Khushboo-Malik/afterframe",
   linkedinUrl: "https://www.linkedin.com/in/khushboo-malik01/",
 };

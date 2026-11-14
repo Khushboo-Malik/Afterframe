@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 
-import { ExtIcon } from "@/components/icons";
 import StreetLines from "@/components/StreetLines";
-import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "How it works",
@@ -28,7 +26,7 @@ function Architecture() {
     <svg
       viewBox="0 0 940 272"
       role="img"
-      aria-label="Your browser talks to the Next.js site on Vercel, which forwards /api to Nginx and Django on EC2. Django reads PostgreSQL on Supabase and queues jobs in Redis. A Celery worker calls Gemini and Google Places and saves places to PostgreSQL. Live updates stream back to the browser over Server-Sent Events."
+      aria-label="Your browser talks to the Next.js site on Vercel, which forwards /api to Django on Railway. Django reads PostgreSQL on Supabase and queues jobs in Redis. A Celery worker calls Gemini and Google Places and saves places to PostgreSQL. Live updates stream back to the browser over Server-Sent Events."
     >
       <defs>
         <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
@@ -42,7 +40,7 @@ function Architecture() {
       <text className="al acc" x="302" y="31" textAnchor="middle">live updates (Server-Sent Events)</text>
       <Box x={10} y={44} w={150} title="Your browser" sub="any device" />
       <Box x={215} y={44} w={165} title="Vercel" sub="Next.js site · HTTPS" />
-      <Box x={435} y={44} w={170} title="EC2: Nginx + Django" sub="REST API · Swagger" />
+      <Box x={435} y={44} w={170} title="Railway: Django" sub="REST API · Swagger" />
       <Box x={765} y={44} w={160} title="PostgreSQL" sub="Supabase" />
       <Box x={435} y={178} w={150} title="Redis" sub="job queue · limits" />
       <Box x={615} y={178} w={150} title="Celery worker" sub="maps one video" ai />
@@ -117,7 +115,7 @@ export default function HowItWorks() {
       <section>
         <h2>Cost controls</h2>
         <ul className="costs">
-          <li><b>5 new videos a day</b> across the whole site</li>
+          <li><b>10 new videos a day</b> across the whole site</li>
           <li><b>Videos up to 30 minutes</b></li>
           <li><b>At most 26 Places searches</b> per video</li>
           <li><b>The agent checks at most 6 places</b> per video</li>
@@ -135,14 +133,6 @@ export default function HowItWorks() {
         </p>
       </section>
 
-      <div className="links">
-        <a className="btn" href={SITE.repoUrl} target="_blank" rel="noopener">
-          Code on GitHub <ExtIcon />
-        </a>
-        <a className="btn ghost" href="/api/docs" target="_blank" rel="noopener">
-          API docs (Swagger) <ExtIcon />
-        </a>
-      </div>
     </main>
   );
 }

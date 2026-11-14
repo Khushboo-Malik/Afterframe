@@ -114,6 +114,13 @@ body:has(main.home) .s-nav a[href="/"], body:has(main.trips) .s-nav a[href="/tri
 [data-theme="dark"] .tt .tt-sun { display: inline-block; color: var(--af-mark); }
 .s-foot { border-top: 1px solid var(--af-line); padding: 22px 24px 26px; font-size: 13.5px; color: var(--af-muted); display: flex; gap: 10px; flex-wrap: wrap; margin-top: auto; }
 .s-foot a { color: var(--af-muted); }
+.s-foot a.s-foot-me { color: var(--af-ink); font-weight: 600; text-decoration: underline; text-decoration-color: var(--af-line); text-decoration-thickness: 1.5px; text-underline-offset: 3px; transition: color .15s, text-decoration-color .15s; }
+.s-foot a.s-foot-me:hover { color: var(--af-accent); text-decoration-color: currentColor; }
+.s-foot-me .ic { width: .8em; height: .8em; margin-left: 2px; vertical-align: -.05em; }
+@media (prefers-reduced-motion: no-preference) {
+  .s-foot-me .ic { transition: transform .15s; }
+  .s-foot-me:hover .ic { transform: translate(1px, -1px); }
+}
 .spin { animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
